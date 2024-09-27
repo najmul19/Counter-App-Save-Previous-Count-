@@ -18,9 +18,8 @@ class Counter extends StatelessWidget {
     );
   }
 }
+
 int cnt = 0;
-
-
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -30,19 +29,20 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-
-  increment()  async {
-    SharedPreferences pref =  await SharedPreferences.getInstance();
+  increment() async {
+    SharedPreferences pref = await SharedPreferences.getInstance();
     ++cnt;
     setState(() {});
     pref.setInt("cntVal", cnt);
   }
 
-  decrement()  async {
-    SharedPreferences pref =  await SharedPreferences.getInstance();
-    --cnt;
-    setState(() {});
-    pref.setInt("cntVal", cnt);
+  decrement() async {
+    SharedPreferences pref = await SharedPreferences.getInstance();
+    if (cnt > 0) {
+      --cnt;
+      setState(() {});
+      pref.setInt("cntVal", cnt);
+    }
   }
 
   @override
@@ -50,28 +50,24 @@ class _HomeScreenState extends State<HomeScreen> {
     action();
     super.initState();
   }
-  action() async {
 
-    SharedPreferences pref =  await SharedPreferences.getInstance();
+  action() async {
+    SharedPreferences pref = await SharedPreferences.getInstance();
     int? cntValue = pref.getInt("cntVal");
-    cnt = cntValue!;
+    cnt = cntValue ?? 0;
     setState(() {});
   }
-  // increment() async {
-  //   SharedPreferences pref = await SharedPreferences.getInstance();
-  //   ++cnt;
-  //   setState(() {});
-  //   pref.setInt("cntVal", cnt);
-  // }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.deepPurple.shade50,
-        title: const Text("Counter", style: TextStyle(fontSize: 30, ),),
+        title: const Text(
+          "Counter",
+          style: TextStyle(fontSize: 30),
+        ),
         centerTitle: true,
-
-
       ),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
@@ -79,70 +75,101 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             Expanded(
               flex: 85,
-              child: Container(
-                height: 100,
-                width: double.infinity,
-
-                decoration: BoxDecoration(
-                  color: Colors.deepPurple.shade50,
-                  borderRadius: BorderRadius.circular(20),
-
-                ),
-                // child: Center(child: Text(cnt.toString(), style: TextStyle(fontSize: 70, fontWeight: FontWeight.w900),)),
-                child: CircularPercentIndicator(radius: 100,lineWidth: 15,backgroundColor: Colors.deepPurple.shade100,progressColor: Colors.deepPurple,percent: (cnt/100),
-                  center: Center(child: Text(cnt.toString(), style: const TextStyle(fontSize: 45, fontWeight: FontWeight.w700),)),
-                  circularStrokeCap: CircularStrokeCap.round,),
+              child: Stack(
+                children: [
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.deepPurple.shade50,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                  ),
+                  Center(
+                    child: CircularPercentIndicator(
+                      radius: 100,
+                      lineWidth: 15,
+                      backgroundColor: Colors.deepPurple.shade100,
+                      progressColor: Colors.deepPurple.shade500,
+                      percent: (cnt / 100).clamp(0.0, 1.0),
+                      center: Center(
+                        child: Text(
+                          cnt.toString(),
+                          style: const TextStyle(
+                            fontSize: 45,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                      circularStrokeCap: CircularStrokeCap.round,
+                    ),
+                  ),
+                  Positioned(
+                    top: 10,
+                    right: 10,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        cnt = 0;
+                        setState(() {});
+                      },
+                      child: const Text("Refresh"),
+                    ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(
-              height: 10,
-            ),
+            const SizedBox(height: 10),
             Expanded(
               flex: 15,
               child: Row(
                 children: [
                   Expanded(
-                      child: InkWell(
-                        onTap: (){
-                          if (cnt > 0) decrement();
-                        },
-                        child: Container(height: double.infinity,width: double.infinity,
-                          decoration: BoxDecoration(
-                            color: Colors.deepPurple.shade100,
-                            borderRadius: const BorderRadius.only(bottomLeft: Radius.circular(20)),
-
+                    child: InkWell(
+                      onTap: () {
+                        if (cnt > 0) decrement();
+                      },
+                      child: Container(
+                        height: double.infinity,
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          color: Colors.deepPurple.shade100,
+                          borderRadius: const BorderRadius.only(
+                            bottomLeft: Radius.circular(20),
                           ),
-                          child: const Icon(Icons.remove, size: 50,),
-
                         ),
-                      )
-
-                  ),
-                  const SizedBox(width: 10,),
-                  Expanded(child: InkWell(
-                    onTap: (){
-                      if(cnt<100)increment();
-                    },
-                    child: Container( height: double.infinity ,width: double.infinity,
-                      decoration: BoxDecoration(
-                        color: Colors.deepPurple.shade100,
-                        borderRadius: const BorderRadius.only(bottomRight: Radius.circular(20)),
+                        child: const Icon(
+                          Icons.remove,
+                          size: 50,
+                        ),
                       ),
-                      child: const Icon(FontAwesomeIcons.plus,size: 50,),
                     ),
-                  )),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: InkWell(
+                      onTap: () {
+                        if (cnt < 100) increment();
+                      },
+                      child: Container(
+                        height: double.infinity,
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          color: Colors.deepPurple.shade100,
+                          borderRadius: const BorderRadius.only(
+                            bottomRight: Radius.circular(20),
+                          ),
+                        ),
+                        child: const Icon(
+                          FontAwesomeIcons.plus,
+                          size: 50,
+                        ),
+                      ),
+                    ),
+                  ),
                 ],
               ),
-
             ),
-
-
-
           ],
         ),
       ),
     );
   }
 }
-
-
